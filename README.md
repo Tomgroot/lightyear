@@ -8,9 +8,9 @@ and last a correct transmission again. The results are printed in the console.
 
 # Usage
 
-- Build: the source code can be found in `crc_compute.cpp`. 
-- Run: a precompiled binary can be found at `crc_compute`. You can also compile the `crc_compute.cpp`.
-- Test: the `main` function of `crc_compute` contains three test of which the result will be echoed to the console.
+- Build: the source code can be found in `crc_compute.cpp`. Compile `crc_compute` using `g++ crc_compute.cpp -o crc_compute`.
+- Run: a precompiled binary can be found at `crc_compute`.
+- Test: the `main` function of `crc_compute` contains 5 test situations of which the result will be echoed to the console.
 
 # CRC algorithm selection & justification
 
@@ -32,17 +32,17 @@ In a worse case scenario the Bit Error Rate (BER) is 10^–04
 (average is 10^-05 according to https://support.transcelestial.com/support/solutions/articles/51000324695-bit-error-rates-what-is-ber-and-what-is-a-good-ber-)
 Lets calculate an approximation of the errors per seconds: 10^-4 * 921600 = 92.16 errors second
 
-Approximation based on nothing, so has to be confirmed but:
+Approximation based on intuition, so has to be confirmed but:
 - Lets assume the probability of errors with length (bits) of 17 - 32 bits is very roughly 20%
 - Lets assume the probability of errors with length (bits) of 33 - 64 bits is very roughly 5%
 
-92.16 * 0.2 = 18.432 errors longer than 16 bit per second
+92.16 * 0.2 = 18.432 errors longer than 16 bit per second \
 92.16 * 0.05 = 4.6 errors longer than 32 bit per second
 
-16 bit CRC = 1-2^(-16) = 99.9984% get detected of errors longer than 16 bit = 0.0016% undetected = 0.000294912 undetected errors per second
-so it takes on average 56.5 minutes for an undetected error
-32 bit CRC = 1-2^(-32) = 99.999999976% get detected of errors longer than 32 bit = 2.4 * 10^(-10) = 1.104 * 10^(-9) undetected errors per second
-so it takes a 28.7 years for an undetected error
+16 bit CRC = `1-2^(-16)` = 99.9984% get detected of errors longer than 16 bit = 0.0016% undetected = 0.000294912 undetected errors per second \
+so it takes on average 56.5 minutes for an undetected error \
+32 bit CRC = `1-2^(-32)` = 99.999999976% get detected of errors longer than 32 bit = `2.4 * 10^(-10) = 1.104 * 10^(-9)` undetected errors per second \
+so it takes on average 28.7 years for an undetected error
 
 Therefore, in the harsh electrical environment and strict reliability requirements in automotive applications, 
 the 32 bit CRC is more reliable over the 16 bit variant for detecting data corruption during transmission.
@@ -57,9 +57,10 @@ Each character has 8 bits + 1 stop bit + 1 parity bit. A payload of 8 bytes mess
 So the CRC should be calculated within at least 0.09ms for a single message.
 
 Longer polynomials require more computations per bit. A 32 bit microcontroller can handle the 32 CRC algorithms.
-Aside from the CRC length, a table look up can also be done instead of a bitwise CRC computation to improve speeds.
-However, adding a table would mean to include extra (flash) memory in the system as well. A 32-bit microcontroller can 
-efficiently handle CRC-32 using bitwise computation, avoiding the memory overhead of a lookup table.
+Aside from the CRC length, a table look up can also be done instead of a bitwise CRC computation to improve speeds especially
+given the high baud rate and the less speedy microprocessors. However, adding a table would mean it uses extra (flash) 
+memory as well. For a 32 CRC this takes up 256 * 32 bit = 1KB which is fair enough considering the hardware constraints 
+of most microcontrollers. 
 
 ## Implementation complexity
 
@@ -75,10 +76,11 @@ Device A and B should share the polynomial. Because of it's use in short message
 errors Castagnoli would be a good fit.
 
 ## Conclusion
-Given the strict reliability requirements of automotive applications, a CRC-32C (Castagnoli) is a solid choice as it balances 
-strong error detection, computational efficiency, and practical implementation complexity.
+Given the strict reliability requirements of automotive applications, a CRC-32C (Castagnoli) including a lookup table approach
+is a solid choice as it balances strong error detection, computational efficiency, and practical implementation complexity.
 
-However, as this conclusion is based on assumptions it would be ideal to support this with automotive testing and more CRC 
-simulation. Also, testing the choice of using bitwise calculation versus a lookup table in constrained hardware requirements
-would be a good next step.
+A time calculation is also added to get a small insight in how fast the CRC calculation is on a high-end
+computer with a powerfull CPU. The average of calculating a CRC with a LUT is around 0.0002 ms.
 
+However, as this conclusion is based on assumptions (and with proper hardware) it would be ideal to support this with 
+automotive testing and more CRC simulation. 
